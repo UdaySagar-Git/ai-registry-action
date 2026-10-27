@@ -1,0 +1,7 @@
+# CI-only fixture: ci.yml's self-test dry-runs this with no credentials against the local folder registry below.
+registries:
+  self-test: { source: ./registry, adapter: local }
+exports:
+  - skills/*
+publish:
+  to: self-test/ci

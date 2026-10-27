@@ -1,0 +1,12 @@
+# Groups the notes that `gh release create --generate-notes` writes; a pull request goes under the first match.
+changelog:
+  exclude:
+    authors:
+      - dependabot[bot]
+  categories:
+    - title: Breaking changes
+      labels: [breaking]
+    - title: Fixes
+      labels: [bug]
+    - title: Other changes
+      labels: ["*"]

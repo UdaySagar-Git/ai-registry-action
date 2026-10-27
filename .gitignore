@@ -1,0 +1,14 @@
+node_modules/
+coverage/
+*.log
+npm-debug.log*
+.DS_Store
+.env
+.env.*
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local coding-agent state.
+.claude/

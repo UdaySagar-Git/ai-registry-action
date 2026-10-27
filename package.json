@@ -1,0 +1,37 @@
+{
+  "name": "ai-registry-action",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GitHub Action that previews ai-registry exports on pull requests and publishes them on merge, with aireg.",
+  "keywords": [
+    "github-action",
+    "ai-registry",
+    "aireg",
+    "agent-registry",
+    "agent-skills"
+  ],
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/atlanai/ai-registry-action#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atlanai/ai-registry-action.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atlanai/ai-registry-action/issues"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "typecheck": "tsc",
+    "test": "node --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=85 --test-coverage-functions=95 --test-coverage-exclude=\"test/**\" \"test/**/*.test.ts\"",
+    "check": "npm run typecheck && npm test && npm run build && git diff --exit-code -- dist"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@vercel/ncc": "0.45.0",
+    "typescript": "6.0.3"
+  }
+}

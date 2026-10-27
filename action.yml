@@ -1,0 +1,49 @@
+name: ai-registry Action
+description: Preview skill and agent changes on every pull request, and publish them to your agent registry on merge, with aireg.
+author: ai-registry
+
+branding:
+  icon: upload-cloud
+  color: purple
+
+inputs:
+  working-directory:
+    description: Folder that holds `.registry/manifest.yml`.
+    required: false
+    default: .
+  github-token:
+    description: Token used to comment on pull requests. The default works.
+    required: false
+    default: ${{ github.token }}
+  publish:
+    description: "`auto` publishes on push and workflow_dispatch and previews pull requests. `true` always publishes, `false` always previews. Publishing only ever happens on the default branch."
+    required: false
+    default: auto
+  comment-on-pr:
+    description: Post the preview as a pull-request comment. Pull requests from forks only get the job summary.
+    required: false
+    default: "true"
+  fail-on-conflict:
+    description: Fail the preview when it finds a conflict.
+    required: false
+    default: "true"
+
+outputs:
+  status:
+    description: "`success`, `failed` or `conflict`."
+  aireg-version:
+    description: Version of aireg that ran.
+  published:
+    description: "JSON array of what was published, or what a preview would publish: `{registry, namespace, kind, name, version}`."
+  unchanged:
+    description: JSON array of exports already published at their current content, in the same shape.
+  skipped:
+    description: "JSON array of exports the target does not accept: `{name, kind, path, reason}`."
+  comment-id:
+    description: ID of the preview comment.
+  conflict-count:
+    description: Number of conflicts the preview found.
+
+runs:
+  using: node24
+  main: dist/index.mjs

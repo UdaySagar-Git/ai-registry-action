@@ -1,0 +1,145 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  # package.json's version is released once, by the first push to main that finds no tag for it.
+  detect:
+    name: Detect an unreleased version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      requested: ${{ steps.release.outputs.requested }}
+      version: ${{ steps.release.outputs.version }}
+      major: ${{ steps.release.outputs.major }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - id: release
+        name: Detect an unreleased version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          version=$(jq -er '.version' package.json)
+          if gh api "repos/$REPOSITORY/git/ref/tags/v$version" --silent 2>/dev/null; then
+            # Only the run that tested the tag's commit may release it, so a later push never finishes it.
+            gh release view "v$version" --repo "$REPOSITORY" --json tagName >/dev/null 2>&1 ||
+              echo "::warning title=Release::v$version is tagged but has no GitHub release; re-run the Release run for the tagged commit"
+            echo 'requested=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          test "$(jq -r '.version' package-lock.json)" = "$version"
+          test "$(jq -r '.packages[""].version' package-lock.json)" = "$version"
+          grep -Fq "uses: atlanai/ai-registry-action@v${version%%.*}" examples/publish.yml
+          grep -Eq "^## $version - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md
+          {
+            echo 'requested=true'
+            echo "version=$version"
+            echo "major=v${version%%.*}"
+          } >> "$GITHUB_OUTPUT"
+
+  # Reuses CI so a release runs exactly the checks pull requests run; it is skipped on ordinary pushes.
+  test:
+    name: Test
+    needs: detect
+    if: needs.detect.outputs.requested == 'true'
+    permissions:
+      contents: read
+    uses: $/.github/workflows/ci.yml
+
+  release:
+    name: Tag and release
+    needs: [detect, test]
+    if: needs.detect.outputs.requested == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Job-level, so a burst of ordinary pushes cannot replace a pending release run.
+    concurrency:
+      group: release-main
+      cancel-in-progress: false
+    permissions:
+      contents: write  # pushes the release tags and creates the GitHub release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+          # This job pushes tags; it uploads no artifacts.
+          persist-credentials: true
+
+      - name: Create immutable and moving tags
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAJOR: ${{ needs.detect.outputs.major }}
+          SHA: ${{ github.sha }}
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          git fetch origin main --tags
+          git merge-base --is-ancestor "$SHA" origin/main
+          test "$(jq -r '.version' package.json)" = "$VERSION"
+
+          # A rerun of this run may reuse its own tag; a tag on any other commit was not tested here.
+          if git rev-parse --verify --quiet "refs/tags/$tag" >/dev/null; then
+            test "$(git cat-file -t "refs/tags/$tag")" = "tag" || {
+              echo "::error::$tag exists but is not an annotated tag"
+              exit 1
+            }
+            test "$(git rev-list -n 1 "$tag")" = "$SHA" || {
+              echo "::error::$tag already points to another commit"
+              exit 1
+            }
+            echo "$tag already points to the tested commit"
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git tag -a "$tag" -m "$tag" "$SHA"
+          fi
+          target=$SHA
+
+          remote_major=$(git ls-remote --refs origin "refs/tags/$MAJOR" | cut -f1)
+          [[ "$remote_major" =~ ^([0-9a-f]{40})?$ ]] || {
+            echo "::error::unexpected remote state for $MAJOR"
+            exit 1
+          }
+          if test -n "$remote_major" && test "$(git rev-list -n 1 "$MAJOR")" != "$target"; then
+            previous=$(git show "$MAJOR:package.json" | jq -er '.version')
+            test "$(printf '%s\n%s\n' "$previous" "$VERSION" | sort -V | tail -1)" = "$VERSION"
+            test "$previous" != "$VERSION"
+          fi
+
+          git tag -f "$MAJOR" "$target"
+          git push --atomic --force-with-lease="refs/tags/$MAJOR:$remote_major" origin \
+            "refs/tags/$tag:refs/tags/$tag" \
+            "refs/tags/$MAJOR:refs/tags/$MAJOR"
+
+          lookup_error=$(mktemp)
+          if release_state=$(gh release view "$tag" --json tagName,isDraft,isPrerelease \
+            --jq '[.tagName, (.isDraft | tostring), (.isPrerelease | tostring)] | join(" ")' 2>"$lookup_error"); then
+            test "$release_state" = "$tag false false" || {
+              echo "::error::GitHub release $tag is draft, prerelease, or attached to an unexpected tag"
+              exit 1
+            }
+            echo "GitHub release $tag already exists"
+          elif grep -qi 'release not found' "$lookup_error"; then
+            gh release create "$tag" --verify-tag --generate-notes \
+              --title "$tag" --notes "Released from commit \`$target\`."
+          else
+            echo "::error::could not look up GitHub release $tag"
+            cat "$lookup_error"
+            exit 1
+          fi

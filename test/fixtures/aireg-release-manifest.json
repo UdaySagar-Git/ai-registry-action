@@ -1,0 +1,52 @@
+{
+  "schema": "aireg-manifest.v1",
+  "channel": "stable",
+  "version": "0.1.7",
+  "minimum_version": "0.1.0",
+  "published_at": "2026-10-23T06:31:17.289Z",
+  "artifacts": [
+    {
+      "name": "aireg-darwin-amd64",
+      "sha256": "649ddb463b843d8c5435bd05392f6fb0bd00028318d1be606c57ea26484aa899",
+      "size": 101338176,
+      "url": "https://aireg.sh/artifacts/v0.1.7/aireg-darwin-amd64"
+    },
+    {
+      "name": "aireg-darwin-arm64",
+      "sha256": "2181f4c521b4af14d51bdae80daeb1bc57bf51cb9bb5fffc43477ca015681d2f",
+      "size": 91812320,
+      "url": "https://aireg.sh/artifacts/v0.1.7/aireg-darwin-arm64"
+    },
+    {
+      "name": "aireg-linux-amd64",
+      "sha256": "3b27faa8e33963bdf3e6ba71c56edc423902f8d986e9c9eb4a9cc3413d223e3c",
+      "size": 112281776,
+      "url": "https://aireg.sh/artifacts/v0.1.7/aireg-linux-amd64"
+    },
+    {
+      "name": "aireg-linux-arm64",
+      "sha256": "f60e30d72c9a72876ee1654bb7b4dcee782ecad0172b764245d4827f7612bd55",
+      "size": 112380920,
+      "url": "https://aireg.sh/artifacts/v0.1.7/aireg-linux-arm64"
+    },
+    {
+      "name": "aireg-windows-amd64.exe",
+      "sha256": "cffeb7e49450b7a58a574fe599392dd68f72c338d0dda62b3846c69773e69c75",
+      "size": 118447408,
+      "url": "https://aireg.sh/artifacts/v0.1.7/aireg-windows-amd64.exe"
+    },
+    {
+      "name": "aireg-windows-arm64.exe",
+      "sha256": "048e2b842f18f94a205ce3192a3aeaec8d32d14c5348a69f4533e5e2533c04e4",
+      "size": 103392048,
+      "url": "https://aireg.sh/artifacts/v0.1.7/aireg-windows-arm64.exe"
+    }
+  ],
+  "signatures": [
+    {
+      "algorithm": "ed25519",
+      "key_id": "aireg-prod-2026-10-v1",
+      "value": "AhgIFuppxQVFJ3duyAgh+tyMDXRVCM7GxChN31OAeUqeghlP4AsOjKz7+FLZ4W/pyDegsdAJ8+qLoxOPARIVAQ=="
+    }
+  ]
+}

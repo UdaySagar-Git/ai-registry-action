@@ -1,0 +1,7 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # The examples teach consumers the moving major tag of this action, as the README does.
+        atlanai/ai-registry-action: ref-pin
+        "*": hash-pin

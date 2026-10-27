@@ -1,0 +1,55 @@
+name: zizmor
+
+on:
+  pull_request:
+    paths:
+      - ".github/**"
+      - "action.yml"
+      - "examples/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/**"
+      - "action.yml"
+      - "examples/**"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: zizmor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  zizmor:
+    name: Lint workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Audit this repository's workflows and action
+        uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+        with:
+          version: 1.31.1
+          inputs: .
+          config: .github/zizmor.yml
+          persona: regular
+          advanced-security: false
+          annotations: true
+
+      # The example uses the published action by tag, which online audits cannot resolve before it is public.
+      - name: Audit the example workflow
+        uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+        with:
+          version: 1.31.1
+          inputs: examples/publish.yml
+          config: .github/zizmor.yml
+          persona: regular
+          online-audits: false
+          advanced-security: false
+          annotations: true

@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: "13 5 * * 1"
+
+permissions: {}
+
+concurrency:
+  # The prefix keeps this group distinct from release.yml's when that workflow calls this one.
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Check that dist matches the source
+        id: dist
+        run: |
+          if [ -n "$(git status --porcelain -- dist)" ]; then
+            echo "::error::dist/ does not match the source; run npm run build and commit the result"
+            git status --porcelain -- dist
+            git --no-pager diff --text -- dist
+            exit 1
+          fi
+
+      - name: Upload the rebuilt dist
+        if: failure() && steps.dist.outcome == 'failure'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/
+          retention-days: 7
+
+      - run: npm audit --audit-level=high
+
+  # Runs the committed bundle as consumers do: installs and verifies aireg, then dry-runs a credential-free manifest.
+  self-test:
+    name: Self-test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: publish
+        uses: $/
+        with:
+          working-directory: .github/self-test
+          publish: false
+          comment-on-pr: false
+
+      - name: Check the dry run
+        env:
+          STATUS: ${{ steps.publish.outputs.status }}
+          AIREG_VERSION: ${{ steps.publish.outputs.aireg-version }}
+          PUBLISHED: ${{ steps.publish.outputs.published }}
+        run: |
+          set -euo pipefail
+          test "$STATUS" = success
+          [[ "$AIREG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          jq -e 'any(.[]; .registry == "self-test" and .namespace == "ci" and .kind == "skill" and .name == "hello")' <<< "$PUBLISHED"

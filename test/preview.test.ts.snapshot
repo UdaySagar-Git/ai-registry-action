@@ -1,0 +1,43 @@
+exports[`runPreview > conflicts > fails the check after commenting while fail-on-conflict is on 1`] = `
+<!-- aireg-publish-preview -->
+<h3>❗ 1 conflict</h3>
+<p>The registry has a newer skill <code>review</code> than this branch. Merge it into this branch and push, or merge as is to replace it.</p>
+
+<table>
+<tr><th align="left" width="330">Artifact</th><th align="left" width="250">Change</th><th align="left" width="180">Version</th></tr>
+<tr><td><code>review</code> <sub>skill</sub></td><td>❗ Conflict</td><td><code>0.3.1</code> → <code>0.3.2</code></td></tr>
+<tr><td><code>sql-style</code> <sub>skill</sub></td><td>🔄 Update</td><td><code>1.2.0</code> → <code>1.2.1</code></td></tr>
+<tr><td><code>triage</code> <sub>agent</sub></td><td>🆕 New</td><td><code>0.1.0</code></td></tr>
+</table>
+
+<details><summary>Not published: 1 unchanged</summary>
+
+<table>
+<tr><th align="left" width="330">Artifact</th><th align="left" width="430">Why</th></tr>
+<tr><td><code>lint</code> <sub>skill</sub></td><td>Already published at this content</td></tr>
+</table>
+
+</details>
+
+<sub>aireg 0.2.0</sub>
+`;
+
+exports[`runPreview > passes no token when the pull request adds the manifest, and dry-runs only the head 1`] = `
+<!-- aireg-publish-preview -->
+<h3>⚠️ Not compared with the registry</h3>
+<p>No token for <code>acme</code> and <code>team</code>, because this pull request changes <code>registries:</code>.</p>
+<p>Once merged, the default branch publishes with these <code>registries:</code> and its token, so check them before merging.</p>
+<p>📝 This pull request adds <code>.registry/manifest.yml</code>, so everything it declares is new.</p>
+<p>📝 <b>This pull request changes the manifest:</b> registries: adds <code>acme</code> and <code>team</code>.</p>
+
+<sub>aireg 0.2.0</sub>
+`;
+
+exports[`runPreview > reads a dry run that names no target as exporting nothing > in the head 1`] = `
+<!-- aireg-publish-preview -->
+<h3>✅ Ready to merge</h3>
+<p>The manifest exports nothing.</p>
+<p>This pull request stops exporting skill <code>review</code>.</p>
+
+<sub>aireg 0.2.0</sub>
+`;

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/atlanai/ai-registry-action/security/advisories/new
+    about: Report vulnerabilities privately. Never open a public issue for them.
+  - name: aireg and the manifest format
+    url: https://github.com/atlanai/ai-registry/issues
+    about: Problems with aireg, adapters or .registry/manifest.yml belong in ai-registry.
+  - name: aireg documentation
+    url: https://atlanai.github.io/ai-registry/
+    about: How registries, manifests, adapters and tokens work.

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420" width="1000" height="420" role="img" aria-labelledby="readme-header-title readme-header-desc">
+  <title id="readme-header-title">ai-registry GitHub Action</title>
+  <desc id="readme-header-desc">A pull request that edits skills/review and adds agents/triage gets one preview comment listing what merging publishes to the engineering namespace of the acme registry, and an unchanged export left alone; after the merge, the action publishes review 0.3.2 and triage 0.1.0 there.</desc>
+  <defs>
+    <clipPath id="readme-header-card">
+      <rect x="320" y="136" width="392" height="212" rx="12"/>
+    </clipPath>
+  </defs>
+  <rect width="1000" height="420" fill="#FFFFFF"/>
+
+  <text x="40" y="76" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#17201F"><tspan fill="#0F6E56">ai</tspan>-registry</text>
+  <rect x="264" y="47" width="148" height="34" rx="17" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="338" y="70" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#085041">GitHub Action</text>
+  <text x="960" y="56" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#4A5654">See what a pull request publishes before it merges.</text>
+  <text x="960" y="80" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#4A5654">Publish it when it lands on the default branch.</text>
+
+  <line x1="264" y1="244" x2="316" y2="244" stroke="#4A5654" stroke-width="1.2"/>
+  <circle cx="316" cy="244" r="3" fill="#4A5654"/>
+  <text x="290" y="232" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#4A5654">dry run</text>
+
+  <line x1="716" y1="244" x2="772" y2="244" stroke="#0F6E56" stroke-width="1.2"/>
+  <circle cx="772" cy="244" r="3" fill="#0F6E56"/>
+  <text x="744" y="232" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#0F6E56">merge</text>
+
+  <rect x="40" y="176" width="224" height="136" rx="10" fill="#FFFFFF" stroke="#B9C2BF"/>
+  <text x="60" y="208" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#17201F">Pull request #42</text>
+  <text x="60" y="248" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#17201F">skills/review</text>
+  <text x="244" y="248" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#4A5654">edited</text>
+  <text x="60" y="284" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#17201F">agents/triage</text>
+  <text x="244" y="284" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#4A5654">added</text>
+
+  <g clip-path="url(#readme-header-card)">
+    <rect x="320" y="136" width="392" height="212" fill="#FFFFFF"/>
+    <rect x="320" y="136" width="392" height="52" fill="#E1F5EE"/>
+  </g>
+  <rect x="320" y="136" width="392" height="212" rx="12" fill="none" stroke="#0F6E56" stroke-width="1.4"/>
+  <line x1="320" y1="188" x2="712" y2="188" stroke="#0F6E56" stroke-width="1"/>
+  <circle cx="348" cy="162" r="9" fill="#0F6E56"/>
+  <path d="M343.5 162.2 l3 3 l6 -6.4" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="364" y="168" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#085041">Ready to merge</text>
+  <text x="692" y="167" text-anchor="end" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#0F6E56">2 → acme/engineering</text>
+
+  <text x="340" y="224" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="15" font-weight="600" fill="#17201F">review</text>
+  <text x="468" y="224" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#4A5654">0.3.1 → 0.3.2</text>
+  <rect x="616" y="207" width="76" height="24" rx="12" fill="#E1F5EE"/>
+  <text x="654" y="224" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#085041">update</text>
+  <line x1="340" y1="244" x2="692" y2="244" stroke="#B9C2BF" stroke-width="0.8"/>
+
+  <text x="340" y="272" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="15" font-weight="600" fill="#17201F">triage</text>
+  <text x="468" y="272" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#4A5654">0.1.0</text>
+  <rect x="616" y="255" width="76" height="24" rx="12" fill="#E1F5EE"/>
+  <text x="654" y="272" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#085041">new</text>
+  <line x1="340" y1="292" x2="692" y2="292" stroke="#B9C2BF" stroke-width="0.8"/>
+
+  <text x="340" y="320" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="15" font-weight="600" fill="#17201F">sql-style</text>
+  <text x="468" y="320" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#4A5654">1.2.0</text>
+  <rect x="592" y="303" width="100" height="24" rx="12" fill="#EEF1F0"/>
+  <text x="642" y="320" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#4A5654">unchanged</text>
+
+  <rect x="776" y="176" width="184" height="136" rx="10" fill="#FFFFFF" stroke="#B9C2BF"/>
+  <text x="796" y="208" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#17201F">acme <tspan font-weight="400" fill="#4A5654">/ engineering</tspan></text>
+  <circle cx="800" cy="243" r="4" fill="#0F6E56"/>
+  <text x="812" y="248" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#17201F">review</text>
+  <text x="940" y="248" text-anchor="end" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#4A5654">0.3.2</text>
+  <circle cx="800" cy="279" r="4" fill="#0F6E56"/>
+  <text x="812" y="284" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#17201F">triage</text>
+  <text x="940" y="284" text-anchor="end" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#4A5654">0.1.0</text>
+
+  <text x="500" y="388" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#4A5654">One comment per pull request · no secrets for registries a pull request changes · publishes only from the default branch</text>
+</svg>

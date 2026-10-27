@@ -1,0 +1,52 @@
+name: Bug report
+description: Report reproducible incorrect behavior in ai-registry Action. Problems with aireg itself belong in atlanai/ai-registry.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, private repository content or vulnerability details. Report security issues through SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Action version
+      description: Use the release tag or full commit SHA from the workflow.
+    validations:
+      required: true
+  - type: dropdown
+    id: action
+    attributes:
+      label: Run
+      options:
+        - Pull-request preview
+        - Publish (push or workflow_dispatch)
+        - Dry run (publish false, or schedule)
+    validations:
+      required: true
+  - type: input
+    id: runner
+    attributes:
+      label: Runner
+      description: For example, ubuntu-latest or macos-latest. The action runs on Linux and macOS runners only.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include a sanitized workflow and the smallest steps that reproduce the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include only sanitized logs. Remove tokens, private URLs and private repository names. Include the `aireg-version` output.
+    validations:
+      required: true

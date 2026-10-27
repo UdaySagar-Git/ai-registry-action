@@ -1,0 +1,117 @@
+import path from "node:path";
+import { type Environment, maskSecret } from "./action.ts";
+import type { Registry } from "./aireg.ts";
+import { GIT_ENVIRONMENT, MIN_REDACTED_TOKEN_CHARS, SYSTEM_PATH, TOKEN_PREFIX } from "./constants.ts";
+
+export type Tokens = Record<string, string>;
+export type SubprocessEnvironment = Readonly<Record<string, string>>;
+
+const TOKEN_NAME = new RegExp(`^${TOKEN_PREFIX}[A-Z0-9_]{1,128}$`);
+
+const PROXY_KEYS = [
+  "HTTPS_PROXY", "HTTP_PROXY", "ALL_PROXY", "NO_PROXY", "https_proxy", "http_proxy", "all_proxy", "no_proxy"
+] as const;
+const TLS_KEYS = ["SSL_CERT_FILE", "SSL_CERT_DIR"] as const;
+const LOCALE_KEYS = ["TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL"] as const;
+const RUNNER_KEYS = ["RUNNER_OS", "RUNNER_ARCH"] as const;
+const INSTALL_KEYS = [...LOCALE_KEYS, ...PROXY_KEYS, ...TLS_KEYS, ...RUNNER_KEYS];
+// The publisher holds registry tokens, so it keeps the system trust store rather than a caller-chosen one.
+const PUBLISH_KEYS = [
+  ...LOCALE_KEYS, ...PROXY_KEYS, ...RUNNER_KEYS, "CI", "GITHUB_ACTIONS", "GITHUB_ACTOR", "GITHUB_JOB", "GITHUB_REF", "GITHUB_REF_NAME",
+  "GITHUB_REF_TYPE", "GITHUB_REPOSITORY", "GITHUB_RUN_ATTEMPT", "GITHUB_RUN_ID", "GITHUB_SHA", "GITHUB_WORKFLOW"
+];
+const FETCH_KEYS = [...PROXY_KEYS, ...TLS_KEYS];
+
+function pick(environment: Environment, keys: readonly string[]): Record<string, string> {
+  const picked: Record<string, string> = {};
+  for (const key of keys) {
+    const value = environment[key];
+    if (value !== undefined) picked[key] = value;
+  }
+  return picked;
+}
+
+function runtimeEnvironment(environment: Environment, keys: readonly string[], runtimeDirectory: string): SubprocessEnvironment {
+  if (!path.isAbsolute(runtimeDirectory)) throw new Error("the action-owned aireg home must be an absolute path");
+  return {
+    ...pick(environment, keys),
+    HOME: runtimeDirectory,
+    AIREG_HOME: path.join(runtimeDirectory, ".aireg"),
+    AIREG_USER_SCOPE: path.join(runtimeDirectory, "registry"),
+    // The action installs the verified release itself, so aireg must not look for another.
+    AIREG_DISABLE_UPDATE_CHECK: "1",
+    PATH: SYSTEM_PATH
+  };
+}
+
+/** Adapter installs run downloaded code, so they get no credential of any kind. */
+export function installEnvironment(environment: Environment, runtimeDirectory: string): SubprocessEnvironment {
+  return runtimeEnvironment(environment, INSTALL_KEYS, runtimeDirectory);
+}
+
+/** For `aireg registry list`, which reads the manifest through git but never a registry. */
+export function listingEnvironment(environment: Environment, runtimeDirectory: string): SubprocessEnvironment {
+  return { ...installEnvironment(environment, runtimeDirectory), ...GIT_ENVIRONMENT };
+}
+
+export function publisherEnvironment(environment: Environment, tokens: Tokens, runtimeDirectory: string): SubprocessEnvironment {
+  return { ...runtimeEnvironment(environment, PUBLISH_KEYS, runtimeDirectory), ...GIT_ENVIRONMENT, ...tokens };
+}
+
+export function fetchEnvironment(environment: Environment): Record<string, string> {
+  return pick(environment, FETCH_KEYS);
+}
+
+export function tokenVariable(registry: string): string {
+  return `${TOKEN_PREFIX}${registry.toUpperCase().replaceAll(/[^A-Z0-9]/g, "_")}`;
+}
+
+export function suppliedTokens(environment: Environment): Tokens {
+  const tokens: Tokens = {};
+  for (const [name, value] of Object.entries(environment)) {
+    if (!name.startsWith(TOKEN_PREFIX) || value === undefined || value === "") continue;
+    if (!TOKEN_NAME.test(name)) {
+      const shown = /^\w{1,160}$/.test(name) ? name : "a registry token variable";
+      throw new Error(`${shown} is not a name aireg reads: use AIREG_TOKEN_ and the registry's name in capitals, with any other character as _`);
+    }
+    if (/[\r\n]/.test(value)) throw new Error(`${name} must be one line`);
+    maskSecret(value);
+    tokens[name] = value;
+  }
+  return tokens;
+}
+
+const secretsByEnvironment = new WeakMap<Environment, string[]>();
+
+function secretsOf(environment: Environment): string[] {
+  let secrets = secretsByEnvironment.get(environment);
+  if (!secrets) {
+    // aireg's JSON answers escape quotes and backslashes, so a token is also looked for in its escaped form.
+    secrets = Object.entries(environment)
+      .filter(([name, value]) => name.startsWith(TOKEN_PREFIX) && value !== undefined && value.length >= MIN_REDACTED_TOKEN_CHARS)
+      .flatMap(([, value]) => [...new Set([JSON.stringify(value).slice(1, -1), value as string])]);
+    secretsByEnvironment.set(environment, secrets);
+  }
+  return secrets;
+}
+
+/** Log masking does not cover comments, summaries or outputs, so every rendered value passes through here first. */
+export function redact(text: unknown, environment: Environment): string {
+  return secretsOf(environment).reduce((plain, secret) => plain.replaceAll(secret, "***"), String(text));
+}
+
+/** Keeps a token only when every registry reading it is declared the same in head and base, so a pull request cannot
+ *  repoint a credential or collide aliases onto it. An unreadable base (`undefined`) keeps none. */
+export function unchangedRegistryTokens(tokens: Tokens, head: readonly Registry[], base: readonly Registry[] | undefined): { tokens: Tokens; withheld: string[] } {
+  const kept: Tokens = {};
+  const withheld = new Set<string>();
+  const declared = (list: readonly Registry[]) => JSON.stringify(list.map(entry => [entry.registry, entry.declaration]).sort());
+  for (const [name, value] of Object.entries(tokens)) {
+    const reading = (list: readonly Registry[]) => list.filter(entry => tokenVariable(entry.registry) === name);
+    const after = reading(head);
+    if (after.length === 0) continue;
+    if (base !== undefined && declared(after) === declared(reading(base))) kept[name] = value;
+    else for (const entry of after) withheld.add(entry.registry);
+  }
+  return { tokens: kept, withheld: [...withheld].sort() };
+}

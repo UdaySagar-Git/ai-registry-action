@@ -1,0 +1,51 @@
+name: aireg publish
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: aireg-publish-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Shows on the pull request what merging publishes. aireg reads the pull request's files and never runs them.
+  # A fork's pull request gets no secrets, so its preview is not compared with the registry.
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: atlanai/ai-registry-action@v1
+        env:
+          AIREG_TOKEN_ACME: ${{ secrets.AIREG_TOKEN_ACME }}
+
+  # Publishes the exports .registry/manifest.yml declares to its publish.to target. The protected environment can
+  # hold a token with publish rights and require an approval.
+  publish:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: registry
+    permissions:
+      contents: read
+      pull-requests: write  # comments on the merged pull request when publishing fails
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: atlanai/ai-registry-action@v1
+        env:
+          AIREG_TOKEN_ACME: ${{ secrets.AIREG_TOKEN_ACME }}
